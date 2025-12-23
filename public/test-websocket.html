@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test WebSocket Connection</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff00;
+        }
+
+        .log {
+            background: #000;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid #00ff00;
+        }
+
+        .error {
+            border-left-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .success {
+            border-left-color: #00ff00;
+            color: #00ff00;
+        }
+
+        .info {
+            border-left-color: #0099ff;
+            color: #0099ff;
+        }
+
+        h1 {
+            color: #00ff00;
+        }
+
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #00cc00;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔌 Test Connessione WebSocket</h1>
+    <div id="logs"></div>
+
+    <h2>Azioni di Test:</h2>
+    <button onclick="testAvailability()">📋 Richiedi Disponibilità</button>
+    <button onclick="testPlayerJoin()">🎮 Test Player Join</button>
+    <button onclick="clearLogs()">🗑️ Pulisci Log</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const logsDiv = document.getElementById('logs');
+
+        function addLog(message, type = 'info') {
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent = `[${timestamp}] ${message}`;
+            logsDiv.insertBefore(logDiv, logsDiv.firstChild);
+        }
+
+        function clearLogs() {
+            logsDiv.innerHTML = '';
+        }
+
+        // Connetti al WebSocket
+        addLog('🔄 Tentativo di connessione al server...', 'info');
+        const socket = io();
+
+        // Event listeners per il WebSocket
+        socket.on('connect', () => {
+            addLog('✅ CONNESSO! Socket ID: ' + socket.id, 'success');
+        });
+
+        socket.on('disconnect', () => {
+            addLog('❌ DISCONNESSO dal server', 'error');
+        });
+
+        socket.on('connect_error', (error) => {
+            addLog('❌ ERRORE DI CONNESSIONE: ' + error.message, 'error');
+        });
+
+        // Test: richiedi disponibilità cartelle
+        socket.on('cards:availability', ({ availableSeries, availableCards }) => {
+            addLog(`📋 Ricevuta disponibilità:`, 'success');
+            addLog(`   - Serie disponibili: ${availableSeries.length} -> [${availableSeries.join(', ')}]`, 'info');
+            addLog(`   - Cartelle disponibili: ${availableCards.length} -> [${availableCards.slice(0, 10).join(', ')}...]`, 'info');
+        });
+
+        // Test: risposta join
+        socket.on('join:success', ({ cardIds, cardCount }) => {
+            addLog(`✅ JOIN RIUSCITO! Cartelle assegnate: ${cardCount}`, 'success');
+            addLog(`   Card IDs: [${cardIds.join(', ')}]`, 'info');
+        });
+
+        socket.on('join:error', ({ message }) => {
+            addLog(`❌ ERRORE JOIN: ${message}`, 'error');
+        });
+
+        // Test: costo aggiornato
+        socket.on('cost:updated', ({ cost }) => {
+            addLog(`💰 Costo aggiornato: €${cost}`, 'success');
+        });
+
+        // Funzioni di test
+        function testAvailability() {
+            addLog('📤 Invio richiesta disponibilità...', 'info');
+            socket.emit('player:request-availability');
+        }
+
+        function testPlayerJoin() {
+            const testNickname = 'TestPlayer_' + Math.floor(Math.random() * 1000);
+            addLog(`📤 Invio richiesta join come "${testNickname}" (Serie 1)...`, 'info');
+            socket.emit('player:join', {
+                nickname: testNickname,
+                selectionType: 'serie',
+                selection: 1
+            });
+        }
+
+        // Auto-test all'avvio
+        setTimeout(() => {
+            if (socket.connected) {
+                addLog('🚀 Auto-test: richiedo disponibilità...', 'info');
+                testAvailability();
+            }
+        }, 1000);
+    </script>
+</body>
+
+</html>

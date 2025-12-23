@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tombola Casa Caruso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="screen active">
+    <div class="container">
+      <div class="login-card glass-card">
+        <h1 class="app-title">🎲 Tombola Casa Caruso</h1>
+
+        <div class="form-group">
+          <label for="nicknameInput">Il tuo Nickname</label>
+          <input type="text" id="nicknameInput" placeholder="Es: Marco" class="input-field" maxlength="20" />
+        </div>
+
+        <div class="role-selection">
+          <h3>Scegli il tuo ruolo:</h3>
+          <div class="role-buttons">
+            <button id="adminBtn" class="role-btn admin-btn">
+              <span class="role-icon">👨‍💼</span>
+              <span class="role-label">Fai il Tabellone</span>
+            </button>
+            <button id="playerBtn" class="role-btn player-btn">
+              <span class="role-icon">🎮</span>
+              <span class="role-label">Prendi le Cartelle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Screen -->
+  <div id="adminScreen" class="screen">
+    <div class="container">
+      <div class="admin-header">
+        <h1>🎲 Tabellone Tombola</h1>
+        <div class="admin-name">Admin: <span id="adminNickname"></span></div>
+      </div>
+
+      <!-- Setup Phase -->
+      <div id="adminSetup" class="phase">
+        <div class="glass-card">
+          <h2>⚙️ Configurazione Partita</h2>
+
+          <div class="form-group">
+            <label for="costInput">Costo per Cartella (€)</label>
+            <input type="number" id="costInput" placeholder="1.00" step="0.10" min="0.10" class="input-field" />
+          </div>
+
+          <div id="lobbySection">
+            <h3>👥 Giocatori Connessi (<span id="playerCount">0</span>)</h3>
+
+            <!-- QR Code for quick connection -->
+            <div class="qrcode-section">
+              <h4>🔗 Connessione Rapida</h4>
+              <img id="qrcodeImage" alt="QR Code" />
+              <p class="qr-url" id="qrUrl">Caricamento...</p>
+            </div>
+
+            <div id="playersList" class="players-list"></div>
+          </div>
+
+          <button id="calculatePrizesBtn" class="btn btn-secondary">
+            💰 Calcola Premi
+          </button>
+
+          <div id="prizesDisplay" class="prizes-display hidden">
+            <h3>🏆 Montepremi</h3>
+            <div class="prize-summary">
+              <div class="total-pot">
+                Totale: <span id="totalPot">€0.00</span>
+              </div>
+            </div>
+            <div class="prizes-grid">
+              <div class="prize-item">
+                <span class="prize-label">Ambo</span>
+                <div class="prize-controls">
+                  <button class="adjust-btn" data-type="ambo" data-amount="-0.01">-</button>
+                  <span class="prize-value" id="prizeAmbo">€0.00</span>
+                  <button class="adjust-btn" data-type="ambo" data-amount="0.01">+</button>
+                </div>
+              </div>
+              <div class="prize-item">
+                <span class="prize-label">Terno</span>
+                <div class="prize-controls">
+                  <button class="adjust-btn" data-type="terno" data-amount="-0.01">-</button>
+                  <span class="prize-value" id="prizeTerno">€0.00</span>
+                  <button class="adjust-btn" data-type="terno" data-amount="0.01">+</button>
+                </div>
+              </div>
+              <div class="prize-item">
+                <span class="prize-label">Quaterna</span>
+                <div class="prize-controls">
+                  <button class="adjust-btn" data-type="quaterna" data-amount="-0.01">-</button>
+                  <span class="prize-value" id="prizeQuaterna">€0.00</span>
+                  <button class="adjust-btn" data-type="quaterna" data-amount="0.01">+</button>
+                </div>
+              </div>
+              <div class="prize-item">
+                <span class="prize-label">Cinquina</span>
+                <div class="prize-controls">
+                  <button class="adjust-btn" data-type="cinquina" data-amount="-0.01">-</button>
+                  <span class="prize-value" id="prizeCinquina">€0.00</span>
+                  <button class="adjust-btn" data-type="cinquina" data-amount="0.01">+</button>
+                </div>
+              </div>
+              <div class="prize-item">
+                <span class="prize-label">Tombola</span>
+                <div class="prize-controls">
+                  <button class="adjust-btn" data-type="tombola" data-amount="-0.01">-</button>
+                  <span class="prize-value" id="prizeTombola">€0.00</span>
+                  <button class="adjust-btn" data-type="tombola" data-amount="0.01">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="startGameBtn" class="btn btn-primary" disabled>
+            🚀 Avvia Gioco
+          </button>
+
+          <button id="resetGameBtn" class="btn btn-secondary" style="margin-top: 12px;">
+            🔄 Reset Partita
+          </button>
+        </div>
+      </div>
+
+      <!-- Game Phase -->
+      <div id="adminGame" class="phase hidden">
+        <div class="glass-card">
+          <div class="game-info">
+            <div class="info-item">
+              <span class="info-label">Numeri Estratti:</span>
+              <span class="info-value" id="numbersDrawn">0/90</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Ultimo Numero:</span>
+              <span class="info-value last-number" id="lastNumber">-</span>
+            </div>
+          </div>
+
+          <div id="tombolaBoard" class="tombola-board"></div>
+
+          <button id="drawNumberBtn" class="btn btn-primary btn-large">
+            🎲 Estrai Numero
+          </button>
+
+          <button id="resetGameBtnDuringGame" class="btn btn-secondary" style="margin-top: 12px;">
+            🔄 Reset Partita
+          </button>
+
+          <div id="winNotifications" class="win-notifications"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Screen -->
+  <div id="playerScreen" class="screen">
+    <div class="container">
+      <div class="player-header">
+        <h1>🎮 Tombola</h1>
+        <div class="player-name">Giocatore: <span id="playerNickname"></span></div>
+      </div>
+
+      <!-- Selection Phase -->
+      <div id="playerSelection" class="phase">
+        <div class="glass-card">
+          <h2>Scegli le tue cartelle</h2>
+
+          <!-- Selection Mode -->
+          <div class="form-group">
+            <label>Modalità di Selezione</label>
+            <div class="mode-buttons">
+              <button id="selectSerieBtn" class="mode-btn active">
+                <span>📦 Serie Completa</span>
+                <small>(6 cartelle)</small>
+              </button>
+              <button id="selectCardsBtn" class="mode-btn">
+                <span>🎯 Cartelle Singole</span>
+                <small>(scegli fino a 6)</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Serie Selection Mode -->
+          <div id="serieMode" class="selection-mode">
+            <div class="form-group">
+              <label for="serieSelect">Scegli una Serie</label>
+              <select id="serieSelect" class="input-field">
+                <!-- Will be populated dynamically -->
+              </select>
+              <small class="help-text">Ogni serie contiene 6 cartelle con tutti i 90 numeri</small>
+            </div>
+          </div>
+
+          <!-- Individual Cards Selection Mode -->
+          <div id="cardsMode" class="selection-mode hidden">
+            <div class="form-group">
+              <label>Scegli Cartelle (max 6)</label>
+              <div id="cardsGrid" class="cards-selection-grid">
+                <!-- Will be populated dynamically with 90 cards -->
+              </div>
+              <div class="selected-cards-info">
+                Cartelle selezionate: <strong id="selectedCount">0</strong>/6
+              </div>
+            </div>
+          </div>
+
+          <div class="cost-preview">
+            Costo totale: <span id="costPreview">-</span>
+          </div>
+
+          <button id="confirmCardsBtn" class="btn btn-primary">
+            ✅ Conferma Scelta
+          </button>
+        </div>
+      </div>
+
+      <!-- Waiting Phase -->
+      <div id="playerWaiting" class="phase hidden">
+        <div class="glass-card text-center">
+          <div class="waiting-animation">
+            <div class="spinner"></div>
+          </div>
+          <h2>In attesa dell'inizio...</h2>
+          <p>L'Admin sta preparando la partita</p>
+          <div class="player-info">
+            <p>Cartelle scelte: <strong id="chosenCards">-</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Phase -->
+      <div id="playerGame" class="phase hidden">
+        <div class="current-number-container">
+          <div class="current-number-display">
+            <div class="current-number-label">Ultimo Numero Estratto</div>
+            <div class="current-number" id="currentNumber">-</div>
+          </div>
+
+          <!-- Single progressive win button -->
+          <button class="win-btn-single hidden" id="declareWinBtn" data-type="ambo">
+            <span class="win-icon" id="winIcon">🎯</span>
+            <span class="win-label" id="winLabel">AMBO</span>
+          </button>
+        </div>
+
+        <div class="manual-mode-section">
+          <label class="manual-toggle">
+            <input type="checkbox" id="manualModeCheckbox">
+            <span class="toggle-slider"></span>
+            <span class="toggle-label">Modalità Segnatura Manuale</span>
+          </label>
+          <small class="help-text">Abilita per segnare i numeri manualmente sulle cartelle</small>
+        </div>
+
+        <div id="playerCards" class="player-cards"></div>
+
+        <div id="numbersHistory" class="numbers-history">
+          <h4>Ultimi numeri estratti:</h4>
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+  <script src="admin.js"></script>
+  <script src="player.js"></script>
+</body>
+
+</html>
