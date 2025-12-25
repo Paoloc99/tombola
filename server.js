@@ -712,6 +712,6 @@ initializeAllCards();
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🎲 Tombola server running on port ${PORT}`);
-  console.log(`📱 Open http://localhost:${PORT} in your browser`);
+  console.log(`📱 Open http://${getLocalIP()}:${PORT} in your browser`);
   console.log(`🏠 Or connect from other devices using your local IP`);
 });
